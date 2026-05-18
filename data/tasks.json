@@ -1,0 +1,15 @@
+{
+  "capacity": 15,
+  "tasks": [
+    { "name": "Web-Server",    "resource": 2, "profit": 6  },
+    { "name": "ML-Training",   "resource": 4, "profit": 10 },
+    { "name": "DB-Instance",   "resource": 3, "profit": 7  },
+    { "name": "Cache-Node",    "resource": 1, "profit": 3  },
+    { "name": "Batch-Job",     "resource": 5, "profit": 12 },
+    { "name": "API-Gateway",   "resource": 2, "profit": 5  },
+    { "name": "Log-Collector", "resource": 2, "profit": 4  },
+    { "name": "Monitoring",    "resource": 3, "profit": 8  },
+    { "name": "Auth-Service",  "resource": 1, "profit": 4  },
+    { "name": "Scheduler",     "resource": 4, "profit": 9  }
+  ]
+}
