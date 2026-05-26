@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Resource Allocation — DP Knapsack</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>☁ Cloud Resource Allocation</h1>
+      <p class="subtitle">0/1 Knapsack solver using Dynamic Programming</p>
+      <p class="meta">
+        ADA Assignment · Mohamed Ali ·
+        <a href="https://github.com/Mohamed-Ali-4/cloud-resource-allocation-dp" target="_blank">GitHub repo</a>
+      </p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="card">
+      <h2>1. Cloud Capacity</h2>
+      <div class="row">
+        <label>Total available resource units (W):
+          <input type="number" id="capacity" value="10" min="1" max="200" />
+        </label>
+        <button id="loadSample" class="ghost">Load sample data</button>
+        <button id="clearAll"   class="ghost">Clear all</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Workload Tasks</h2>
+      <p class="hint">Each task has a resource requirement and a profit value. Add or remove rows freely.</p>
+      <table id="tasksTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Task Name</th>
+            <th>Resource (r)</th>
+            <th>Profit (p)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="addTask" class="primary">+ Add Task</button>
+    </section>
+
+    <section class="card center">
+      <button id="solve" class="big primary">⚡ Solve with DP</button>
+    </section>
+
+    <section id="resultSection" class="card hidden">
+      <h2>3. Optimal Allocation</h2>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Max Profit</div><div class="stat-value" id="statProfit">—</div></div>
+        <div class="stat"><div class="stat-label">Resources Used</div><div class="stat-value" id="statResources">—</div></div>
+        <div class="stat"><div class="stat-label">Utilization</div><div class="stat-value" id="statUtil">—</div></div>
+        <div class="stat"><div class="stat-label">Tasks Admitted</div><div class="stat-value" id="statCount">—</div></div>
+      </div>
+
+      <h3>Selected Tasks</h3>
+      <table id="selectedTable">
+        <thead>
+          <tr><th>Task</th><th>Resource</th><th>Profit</th><th>Status</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h3>Dynamic Programming Table</h3>
+      <p class="hint">
+        Each cell <code>dp[i][w]</code> = max profit using the first <em>i</em> tasks with capacity <em>w</em>.
+        Cells highlighted in <span class="legend-hl">green</span> are on the backtracking path that recovers the optimal subset.
+      </p>
+      <div class="table-scroll">
+        <table id="dpTable" class="dp"></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>About the Algorithm</h2>
+      <p>
+        This solver uses bottom-up Dynamic Programming. The recurrence is:
+      </p>
+      <pre class="code">dp[i][w] = dp[i-1][w]                                    if r_i &gt; w
+dp[i][w] = max( dp[i-1][w],
+                dp[i-1][w - r_i] + p_i )                  otherwise</pre>
+      <p>
+        <strong>Time complexity:</strong> O(n × W) &nbsp;·&nbsp;
+        <strong>Space complexity:</strong> O(n × W) &nbsp;·&nbsp;
+        <strong>Reduced space:</strong> O(W) with 1-D DP
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Algorithm Design &amp; Analysis · Cloud Resource Allocation using DP Knapsack</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
