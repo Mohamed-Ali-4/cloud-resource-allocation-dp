@@ -4,106 +4,288 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cloud Resource Allocation — DP Knapsack</title>
+  <meta name="description" content="Optimal cloud workload scheduling using 0/1 Knapsack Dynamic Programming. Maximise profit within a fixed resource budget." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>☁ Cloud Resource Allocation</h1>
-      <p class="subtitle">0/1 Knapsack solver using Dynamic Programming</p>
-      <p class="meta">
-        ADA Assignment · Mohamed Ali ·
-        <a href="https://github.com/Mohamed-Ali-4/cloud-resource-allocation-dp" target="_blank">GitHub repo</a>
-        · <a href="presentation.html" style="font-weight:600;">📊 View Presentation</a>
-      </p>
+
+<!-- ── Nav ───────────────────────────────────────────────── -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">
+      <span class="brand-icon">☁</span>
+      <span class="brand-text">CloudKnapsack</span>
+    </a>
+    <div class="nav-links">
+      <a href="#demo" class="nav-link">Demo</a>
+      <a href="#algorithm" class="nav-link">Algorithm</a>
+      <a href="presentation.html" class="nav-link">Slides</a>
+      <a href="https://github.com/Mohamed-Ali-4/cloud-resource-allocation-dp" target="_blank" class="nav-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.14 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
     </div>
-  </header>
+  </div>
+</nav>
 
-  <main class="container">
-
-    <section class="card">
-      <h2>1. Cloud Capacity</h2>
-      <div class="row">
-        <label>Total available resource units (W):
-          <input type="number" id="capacity" value="10" min="1" max="200" />
-        </label>
-        <button id="loadSample" class="ghost">Load sample data</button>
-        <button id="clearAll"   class="ghost">Clear all</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>2. Workload Tasks</h2>
-      <p class="hint">Each task has a resource requirement and a profit value. Add or remove rows freely.</p>
-      <table id="tasksTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Task Name</th>
-            <th>Resource (r)</th>
-            <th>Profit (p)</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button id="addTask" class="primary">+ Add Task</button>
-    </section>
-
-    <section class="card center">
-      <button id="solve" class="big primary">⚡ Solve with DP</button>
-    </section>
-
-    <section id="resultSection" class="card hidden">
-      <h2>3. Optimal Allocation</h2>
-      <div class="stats">
-        <div class="stat"><div class="stat-label">Max Profit</div><div class="stat-value" id="statProfit">—</div></div>
-        <div class="stat"><div class="stat-label">Resources Used</div><div class="stat-value" id="statResources">—</div></div>
-        <div class="stat"><div class="stat-label">Utilization</div><div class="stat-value" id="statUtil">—</div></div>
-        <div class="stat"><div class="stat-label">Tasks Admitted</div><div class="stat-value" id="statCount">—</div></div>
-      </div>
-
-      <h3>Selected Tasks</h3>
-      <table id="selectedTable">
-        <thead>
-          <tr><th>Task</th><th>Resource</th><th>Profit</th><th>Status</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3>Dynamic Programming Table</h3>
-      <p class="hint">
-        Each cell <code>dp[i][w]</code> = max profit using the first <em>i</em> tasks with capacity <em>w</em>.
-        Cells highlighted in <span class="legend-hl">green</span> are on the backtracking path that recovers the optimal subset.
-      </p>
-      <div class="table-scroll">
-        <table id="dpTable" class="dp"></table>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>About the Algorithm</h2>
-      <p>
-        This solver uses bottom-up Dynamic Programming. The recurrence is:
-      </p>
-      <pre class="code">dp[i][w] = dp[i-1][w]                                    if r_i &gt; w
-dp[i][w] = max( dp[i-1][w],
-                dp[i-1][w - r_i] + p_i )                  otherwise</pre>
-      <p>
-        <strong>Time complexity:</strong> O(n × W) &nbsp;·&nbsp;
-        <strong>Space complexity:</strong> O(n × W) &nbsp;·&nbsp;
-        <strong>Reduced space:</strong> O(W) with 1-D DP
-      </p>
-    </section>
-
-  </main>
-
-  <footer>
-    <div class="container">
-      <p>Algorithm Design &amp; Analysis · Cloud Resource Allocation using DP Knapsack</p>
+<!-- ── Hero ──────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">ADA Assignment · RV College of Engineering · 2024</div>
+    <h1 class="hero-title">
+      Cloud Resource<br />
+      <span class="gradient-text">Allocation</span>
+    </h1>
+    <p class="hero-sub">
+      Optimal workload scheduling via <strong>0/1 Knapsack Dynamic Programming</strong><br />
+      Maximise cloud profit within a fixed resource budget — guaranteed globally optimal.
+    </p>
+    <div class="hero-pills">
+      <span class="pill">⏱ O(n×W) Time</span>
+      <span class="pill">💯 Exact Optimal</span>
+      <span class="pill">📊 DP Tabulation</span>
+      <span class="pill">🔁 Full Backtrack</span>
     </div>
-  </footer>
+    <a href="#demo" class="hero-cta">Try the Live Demo ↓</a>
+  </div>
+  <div class="hero-visual">
+    <div class="server-grid">
+      <div class="srv admitted" title="ML-Training">🖥 ML-Training<br/><small>4 cpu · +10</small></div>
+      <div class="srv admitted" title="DB-Instance">🖥 DB-Instance<br/><small>3 cpu · +7</small></div>
+      <div class="srv admitted" title="Cache-Node">🖥 Cache-Node<br/><small>1 cpu · +3</small></div>
+      <div class="srv admitted" title="Web-Server">🖥 Web-Server<br/><small>2 cpu · +6</small></div>
+      <div class="srv rejected" title="Batch-Job">🚫 Batch-Job<br/><small>5 cpu · rejected</small></div>
+      <div class="srv rejected" title="API-Gateway">🚫 API-Gateway<br/><small>2 cpu · rejected</small></div>
+    </div>
+    <div class="hero-stat-badge">Max Profit: <strong>26</strong> · Utilisation: <strong>100%</strong></div>
+  </div>
+</section>
 
-  <script src="app.js"></script>
+<!-- ── Demo App ───────────────────────────────────────────── -->
+<section id="demo" class="section">
+  <div class="container">
+
+    <div class="section-label">Live Solver</div>
+    <h2 class="section-title">Run the DP Algorithm</h2>
+    <p class="section-sub">Configure your cloud budget, define workload tasks, and watch the algorithm find the optimal allocation.</p>
+
+    <!-- Step 1: Capacity -->
+    <div class="step-card">
+      <div class="step-hd">
+        <span class="step-num">01</span>
+        <div>
+          <div class="step-title">Cloud Budget (Capacity W)</div>
+          <div class="step-desc">Total resource units available — CPU cores, memory slots, etc.</div>
+        </div>
+      </div>
+      <div class="capacity-row">
+        <div class="input-group">
+          <label class="input-label">Total Capacity (W)</label>
+          <input type="number" id="capacity" class="input-lg" value="10" min="1" max="500" />
+        </div>
+        <div class="preset-group">
+          <span class="preset-label">Quick set:</span>
+          <button class="preset-btn" data-cap="5">5</button>
+          <button class="preset-btn" data-cap="10">10</button>
+          <button class="preset-btn" data-cap="15">15</button>
+          <button class="preset-btn" data-cap="20">20</button>
+          <button class="preset-btn" data-cap="50">50</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Tasks -->
+    <div class="step-card">
+      <div class="step-hd">
+        <span class="step-num">02</span>
+        <div>
+          <div class="step-title">Workload Tasks</div>
+          <div class="step-desc">Each task needs resource units to run and yields a profit score.</div>
+        </div>
+        <div class="step-actions">
+          <button id="loadSample" class="btn-ghost">↺ Load Sample</button>
+          <button id="clearAll"   class="btn-ghost btn-danger">✕ Clear All</button>
+        </div>
+      </div>
+      <div class="tasks-grid" id="tasksGrid"></div>
+      <button id="addTask" class="btn-add">＋ Add Task</button>
+    </div>
+
+    <!-- Solve -->
+    <div class="solve-row">
+      <button id="solve" class="btn-solve">
+        <span id="solveIcon">⚡</span>
+        <span id="solveText">Solve with Dynamic Programming</span>
+      </button>
+      <p class="solve-note" id="apiStatus"></p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultSection" class="hidden">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-val animated-num" id="statProfit">0</div>
+          <div class="stat-lbl">Max Profit</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon">⚙</div>
+          <div class="stat-val" id="statResources">—</div>
+          <div class="stat-lbl">Resources Used</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">📊</div>
+          <div class="stat-val" id="statUtil">—</div>
+          <div class="stat-lbl">Utilisation</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-icon">✓</div>
+          <div class="stat-val" id="statCount">—</div>
+          <div class="stat-lbl">Tasks Scheduled</div>
+        </div>
+        <div class="stat-card purple" id="timeCard" style="display:none">
+          <div class="stat-icon">⏱</div>
+          <div class="stat-val" id="statTime">—</div>
+          <div class="stat-lbl">API Solve Time</div>
+        </div>
+      </div>
+
+      <!-- Chart + list -->
+      <div class="results-cols">
+        <div class="result-card chart-card">
+          <div class="card-hd">
+            <h3 class="card-title">Task Comparison</h3>
+            <div class="chart-legend">
+              <span class="leg admitted">Admitted</span>
+              <span class="leg rejected">Rejected</span>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="taskChart"></canvas>
+          </div>
+        </div>
+        <div class="result-card list-card">
+          <h3 class="card-title">Allocation Results</h3>
+          <div id="taskResultList" class="task-result-list"></div>
+          <div class="utilisation-bar-wrap">
+            <div class="util-labels">
+              <span>Resource utilisation</span>
+              <span id="utilPct">0%</span>
+            </div>
+            <div class="util-track"><div class="util-fill" id="utilFill"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DP Table -->
+      <div class="result-card">
+        <div class="dp-hd">
+          <div>
+            <h3 class="card-title">DP Table &nbsp;<span class="dp-badge" id="dpSize"></span></h3>
+            <p class="dp-hint">dp[i][w] = max profit using first <em>i</em> tasks with capacity <em>w</em>. <span class="path-legend">Green</span> = backtrack path.</p>
+          </div>
+          <button class="btn-ghost" id="animateBtn">▶ Animate Fill</button>
+        </div>
+        <div class="dp-scroll">
+          <table id="dpTable" class="dp-table"></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Algorithm ─────────────────────────────────────────── -->
+<section id="algorithm" class="section dark-section">
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">The 0/1 Knapsack Algorithm</h2>
+    <p class="section-sub">Guarantees the globally optimal allocation in O(n×W) time via bottom-up tabulation.</p>
+
+    <div class="algo-steps">
+      <div class="algo-step">
+        <div class="algo-num">01</div>
+        <h3>Initialise Table</h3>
+        <p>Create an (n+1)&times;(W+1) table. Row 0 and column 0 are all zeros — base cases for zero tasks or zero capacity.</p>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num">02</div>
+        <h3>Fill by Recurrence</h3>
+        <p>For each task <em>i</em> and each capacity <em>w</em>: either skip the task or include it if it fits and improves profit.</p>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num">03</div>
+        <h3>Backtrack Solution</h3>
+        <p>Walk backwards from dp[n][W]. Whenever dp[i][w] &ne; dp[i-1][w], task <em>i</em> was selected — subtract its resource.</p>
+      </div>
+    </div>
+
+    <div class="recurrence-block">
+      <div class="rec-title">Recurrence Relation</div>
+      <pre class="rec-code"><span class="kw">dp</span>[i][w] = <span class="kw">dp</span>[i-1][w]                               <span class="cm">// skip task i (always)</span>
+<span class="kw">dp</span>[i][w] = max( <span class="kw">dp</span>[i-1][w],
+                <span class="kw">dp</span>[i-1][w - r<sub>i</sub>] + p<sub>i</sub> )        <span class="cm">// include if r_i ≤ w</span></pre>
+    </div>
+
+    <div class="cmplx-row">
+      <div class="cmplx-card">
+        <div class="cmplx-label">Time Complexity</div>
+        <div class="cmplx-val">O(n &times; W)</div>
+        <div class="cmplx-desc">n tasks · W capacity units</div>
+      </div>
+      <div class="cmplx-card">
+        <div class="cmplx-label">Space Complexity</div>
+        <div class="cmplx-val">O(n &times; W)</div>
+        <div class="cmplx-desc">Reducible to O(W) with 1-D rolling array</div>
+      </div>
+      <div class="cmplx-card">
+        <div class="cmplx-label">Optimality</div>
+        <div class="cmplx-val">Exact</div>
+        <div class="cmplx-desc">Globally optimal — beats any greedy approach</div>
+      </div>
+      <div class="cmplx-card">
+        <div class="cmplx-label">Type</div>
+        <div class="cmplx-val">Pseudo-poly</div>
+        <div class="cmplx-desc">Polynomial in n, exponential in bits of W</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Team / Footer ──────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">☁ CloudKnapsack</div>
+        <div class="footer-desc">Algorithm Design &amp; Analysis · RV College of Engineering · 2024</div>
+      </div>
+      <div class="footer-links-col">
+        <a href="https://github.com/Mohamed-Ali-4/cloud-resource-allocation-dp" target="_blank">GitHub Repo</a>
+        <a href="presentation.html">Presentation</a>
+        <a href="https://github.com/Mohamed-Ali-4/cloud-resource-allocation-dp/blob/main/Cloud-Resource-Allocation-DP.pdf" target="_blank">Report (PDF)</a>
+      </div>
+    </div>
+    <div class="footer-team">
+      <span class="team-label">Team:</span>
+      <span>Laksh Yadav &nbsp;·&nbsp; 1RF24CS094</span>
+      <span>Mikul Swamy &nbsp;·&nbsp; 1RF24CS103</span>
+      <span>Mohamad Aashim &nbsp;·&nbsp; 1RF24CS105</span>
+      <span>Mohamed Ali &nbsp;·&nbsp; 1RF24CS106</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
