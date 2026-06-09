@@ -1,6 +1,6 @@
 // Cloud Resource Allocation — 0/1 Knapsack DP  (frontend)
 
-const API_BASE = 'https://cloud-knapsack-api.onrender.com';
+const API_BASE = 'https://cloud-resource-allocation-dp.onrender.com';
 
 const SAMPLE_TASKS = [
   { name: 'Web-Server',  resource: 2, profit: 6  },
