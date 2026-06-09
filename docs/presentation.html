@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Resource Allocation — DP Knapsack | Presentation</title>
+  <meta property="og:title" content="Cloud Resource Allocation using Dynamic Programming" />
+  <meta property="og:description" content="ADA Assignment presentation — 0/1 Knapsack DP for optimal cloud workload scheduling." />
+  <meta property="og:image" content="slides/slide-1.jpg" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a1628;
+      --surface: #0f2d4f;
+      --blue: #1565c0;
+      --teal: #0097a7;
+      --sky: #29b6f6;
+      --white: #ffffff;
+      --muted: #7b8ea3;
+      --radius: 10px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: var(--surface);
+      border-bottom: 2px solid var(--teal);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--sky);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    header .meta {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    header .back-link {
+      font-size: 12px;
+      color: var(--teal);
+      text-decoration: none;
+      border: 1px solid var(--teal);
+      padding: 4px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    header .back-link:hover { background: rgba(0,151,167,.15); }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      height: calc(100vh - 50px);
+    }
+
+    /* ── Thumbnail rail ── */
+    .rail {
+      width: 130px;
+      min-width: 130px;
+      background: #060f1e;
+      border-right: 1px solid #1a2d45;
+      overflow-y: auto;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--blue) transparent;
+    }
+    .rail::-webkit-scrollbar { width: 4px; }
+    .rail::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 4px; }
+
+    .thumb {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 5px;
+      overflow: hidden;
+      transition: border-color .15s, transform .1s;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .thumb:hover { border-color: var(--teal); transform: scale(1.02); }
+    .thumb.active { border-color: var(--sky); }
+    .thumb img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; }
+    .thumb .num {
+      position: absolute;
+      bottom: 3px; right: 5px;
+      font-size: 9px;
+      color: rgba(255,255,255,.7);
+      background: rgba(0,0,0,.5);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    /* ── Stage ── */
+    .stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #0d1e30;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .slide-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    .slide-wrapper img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      transition: opacity .25s ease;
+    }
+    .slide-wrapper img.hidden { opacity: 0; pointer-events: none; }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn {
+      background: var(--blue);
+      color: var(--white);
+      border: none;
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      user-select: none;
+    }
+    .btn:hover { background: #1976d2; }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { background: #1a2d45; color: var(--muted); cursor: default; }
+
+    .btn-icon {
+      background: transparent;
+      border: 1px solid var(--blue);
+      color: var(--sky);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-icon:hover { background: rgba(21,101,192,.2); }
+
+    .counter {
+      font-size: 14px;
+      color: var(--muted);
+      min-width: 70px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .counter span { color: var(--white); font-weight: 700; }
+
+    /* ── Progress bar ── */
+    .progress-track {
+      width: 100%;
+      max-width: 1000px;
+      height: 3px;
+      background: #1a2d45;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      border-radius: 2px;
+      transition: width .25s ease;
+    }
+
+    /* ── Fullscreen ── */
+    .fullscreen-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: #000;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+    }
+    .fullscreen-overlay.active { display: flex; }
+    .fullscreen-overlay img {
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+    .fullscreen-overlay .fs-nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0,0,0,.7);
+      padding: 8px 18px;
+      border-radius: 30px;
+      backdrop-filter: blur(8px);
+    }
+    .fs-close {
+      position: fixed; top: 16px; right: 20px;
+      background: rgba(0,0,0,.7);
+      color: #fff;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    /* ── Download button ── */
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--teal);
+      color: var(--white);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background .15s;
+    }
+    .dl-btn:hover { background: #00acc1; }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .rail { width: 80px; min-width: 80px; }
+      header h1 { font-size: 13px; }
+      .btn { padding: 8px 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Cloud Resource Allocation — 0/1 Knapsack DP</h1>
+  <div class="meta">ADA Assignment &nbsp;·&nbsp; RV College of Engineering &nbsp;·&nbsp; 2024</div>
+  <a class="back-link" href="index.html">← Live Demo</a>
+</header>
+
+<div class="layout">
+
+  <!-- Thumbnail rail -->
+  <nav class="rail" id="rail"></nav>
+
+  <!-- Main stage -->
+  <main class="stage">
+    <div class="slide-wrapper" id="stage"></div>
+    <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+    <div class="controls">
+      <button class="btn" id="btnPrev">&#8592; Prev</button>
+      <span class="counter">Slide <span id="cur">1</span> / <span id="tot">14</span></span>
+      <button class="btn" id="btnNext">Next &#8594;</button>
+      <button class="btn-icon" id="btnFs" title="Fullscreen (F)">&#x26F6;</button>
+      <a class="dl-btn" href="../Cloud-Resource-Allocation-DP.pptx" download>&#8595; .pptx</a>
+    </div>
+  </main>
+</div>
+
+<!-- Fullscreen overlay -->
+<div class="fullscreen-overlay" id="fsOverlay">
+  <button class="fs-close" id="fsClose">&#x2715;</button>
+  <img id="fsImg" src="" alt="Slide" />
+  <div class="fs-nav">
+    <button class="btn" id="fsPrev">&#8592;</button>
+    <span class="counter" id="fsCtr" style="color:#fff">1 / 14</span>
+    <button class="btn" id="fsNext">&#8594;</button>
+  </div>
+</div>
+
+<script>
+  const TOTAL = 14;
+  // sort numerically
+  const slides = Array.from({length: TOTAL}, (_, i) => `slides/slide-${i+1}.jpg`);
+
+  const slideTitles = [
+    "Title", "The Challenge", "Problem Statement",
+    "Intro to DP", "0/1 Knapsack Algorithm", "Worked Example",
+    "DP Table Trace", "Implementation", "System Architecture",
+    "Complexity Analysis", "Benchmarks", "Greedy vs DP",
+    "Conclusion", "References"
+  ];
+
+  let current = 0;
+
+  // Build stage images
+  const stage = document.getElementById('stage');
+  slides.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = `Slide ${i+1}: ${slideTitles[i]}`;
+    if (i !== 0) img.classList.add('hidden');
+    stage.appendChild(img);
+  });
+
+  // Build rail
+  const rail = document.getElementById('rail');
+  slides.forEach((src, i) => {
+    const div = document.createElement('div');
+    div.className = 'thumb' + (i === 0 ? ' active' : '');
+    div.title = slideTitles[i];
+    div.innerHTML = `<img src="${src}" alt="Slide ${i+1}" loading="lazy" /><span class="num">${i+1}</span>`;
+    div.addEventListener('click', () => goTo(i));
+    rail.appendChild(div);
+  });
+
+  const imgs = stage.querySelectorAll('img');
+  const thumbs = rail.querySelectorAll('.thumb');
+  const prog = document.getElementById('prog');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const curEl = document.getElementById('cur');
+  const totEl = document.getElementById('tot');
+  totEl.textContent = TOTAL;
+
+  function goTo(n) {
+    imgs[current].classList.add('hidden');
+    thumbs[current].classList.remove('active');
+    current = Math.max(0, Math.min(TOTAL - 1, n));
+    imgs[current].classList.remove('hidden');
+    thumbs[current].classList.add('active');
+    thumbs[current].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    curEl.textContent = current + 1;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === TOTAL - 1;
+    prog.style.width = `${((current + 1) / TOTAL) * 100}%`;
+    // sync fullscreen
+    document.getElementById('fsImg').src = slides[current];
+    document.getElementById('fsCtr').textContent = `${current + 1} / ${TOTAL}`;
+  }
+
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+  btnNext.addEventListener('click', () => goTo(current + 1));
+  goTo(0);
+
+  // Fullscreen
+  const fsOverlay = document.getElementById('fsOverlay');
+  document.getElementById('btnFs').addEventListener('click', openFs);
+  document.getElementById('fsClose').addEventListener('click', closeFs);
+  document.getElementById('fsPrev').addEventListener('click', () => { goTo(current - 1); });
+  document.getElementById('fsNext').addEventListener('click', () => { goTo(current + 1); });
+
+  function openFs() {
+    document.getElementById('fsImg').src = slides[current];
+    fsOverlay.classList.add('active');
+  }
+  function closeFs() { fsOverlay.classList.remove('active'); }
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'f' || e.key === 'F') { fsOverlay.classList.contains('active') ? closeFs() : openFs(); }
+    if (e.key === 'Escape') closeFs();
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(TOTAL - 1);
+  });
+
+  // Touch / swipe
+  let touchX = null;
+  stage.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  stage.addEventListener('touchend', e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+    touchX = null;
+  });
+</script>
+
+</body>
+</html>
